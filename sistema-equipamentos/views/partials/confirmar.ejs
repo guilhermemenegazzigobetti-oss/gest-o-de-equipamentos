@@ -1,0 +1,20 @@
+<dialog id="dlg-confirmar" aria-labelledby="c-titulo">
+  <form method="post" class="modal">
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+    <input type="hidden" name="voltar" value="<%= typeof voltar !== 'undefined' ? voltar : '' %>">
+    <div class="modal-perigo-ico"><%- icon('alert', 28) %></div>
+    <div>
+      <h2 id="c-titulo" data-c-titulo>Confirmar</h2>
+      <p class="sub" data-c-texto></p>
+    </div>
+    <div class="campo" data-c-just hidden>
+      <label for="c-just">Justificativa*</label>
+      <textarea id="c-just" name="justificativa" maxlength="500" placeholder="Descreva o motivo da alteração"></textarea>
+      <small>Campo obrigatório. A justificativa ficará registrada no histórico.</small>
+    </div>
+    <div class="modal-acoes">
+      <button type="button" class="btn btn-sec" data-fechar>Cancelar</button>
+      <button type="submit" class="btn btn-primario" data-c-ok>Confirmar</button>
+    </div>
+  </form>
+</dialog>

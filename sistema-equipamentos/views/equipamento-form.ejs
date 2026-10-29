@@ -1,0 +1,72 @@
+<%- include('partials/head') %>
+<% const novo = modo === 'novo'; const act = novo ? '/equipamentos' : '/equipamentos/' + e.id_equipamento;
+   const v = (k) => (e[k] === null || e[k] === undefined) ? '' : e[k];
+   const inv = (k) => erros[k] ? 'invalido' : ''; %>
+<div class="cabecalho">
+  <div><h1><%= novo ? 'Novo equipamento' : 'Editar equipamento' %></h1>
+  <p><%= novo ? 'Preencha os dados para incluir um equipamento no inventário.' : 'Atualize os dados do equipamento.' %></p></div>
+</div>
+<% if (Object.keys(erros).length) { %><div class="toast erro" role="alert"><%- icon('alertc') %><span>Revise os campos obrigatórios antes de salvar.</span></div><% } %>
+<form method="post" action="<%= act %>" novalidate>
+  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+  <section class="card">
+    <h2>Identificação do equipamento</h2><p class="sub">Dados de identificação e controle patrimonial.</p>
+    <div class="grade-2" style="margin-top:24px">
+      <div class="campo"><label for="numero_patrimonio">Número de patrimônio</label>
+        <input id="numero_patrimonio" name="numero_patrimonio" maxlength="30" class="<%= inv('numero_patrimonio') %>" placeholder="Ex.: CEMG-0121" value="<%= v('numero_patrimonio') %>">
+        <% if (erros.numero_patrimonio) { %><span class="erro-txt"><%= erros.numero_patrimonio %></span><% } %></div>
+      <div class="campo"><label for="nome">Nome*</label>
+        <input id="nome" name="nome" maxlength="120" class="<%= inv('nome') %>" placeholder="Ex.: Computador Dell OptiPlex" value="<%= v('nome') %>" required>
+        <% if (erros.nome) { %><span class="erro-txt"><%= erros.nome %></span><% } %></div>
+      <div class="campo"><label for="id_categoria">Categoria*</label>
+        <select id="id_categoria" name="id_categoria" class="<%= inv('id_categoria') %>" required>
+          <option value="">Selecione uma categoria</option>
+          <% categorias.forEach(function (c) { %><option value="<%= c.id_categoria %>" <%= String(v('id_categoria')) === String(c.id_categoria) ? 'selected' : '' %>><%= c.nome %></option><% }) %>
+        </select>
+        <% if (erros.id_categoria) { %><span class="erro-txt"><%= erros.id_categoria %></span><% } %></div>
+      <div class="campo"><label for="marca">Marca</label><input id="marca" name="marca" maxlength="60" placeholder="Ex.: Dell" value="<%= v('marca') %>">
+        <% if (erros.marca) { %><span class="erro-txt"><%= erros.marca %></span><% } %></div>
+      <div class="campo"><label for="modelo">Modelo</label><input id="modelo" name="modelo" maxlength="60" placeholder="Ex.: OptiPlex 3080" value="<%= v('modelo') %>">
+        <% if (erros.modelo) { %><span class="erro-txt"><%= erros.modelo %></span><% } %></div>
+      <div class="campo"><label for="numero_serie">Número de série</label><input id="numero_serie" name="numero_serie" maxlength="60" placeholder="Informe o número de série" value="<%= v('numero_serie') %>">
+        <% if (erros.numero_serie) { %><span class="erro-txt"><%= erros.numero_serie %></span><% } %></div>
+    </div>
+  </section>
+  <section class="card">
+    <h2>Localização e situação</h2><p class="sub">Defina a alocação e a condição atual do equipamento.</p>
+    <div class="grade-2" style="margin-top:24px">
+      <div class="campo"><label for="id_setor">Setor*</label>
+        <select id="id_setor" name="id_setor" class="<%= inv('id_setor') %>" required>
+          <option value="">Selecione um setor</option>
+          <% setores.forEach(function (s) { if (s.ativo || String(v('id_setor')) === String(s.id_setor)) { %><option value="<%= s.id_setor %>" <%= String(v('id_setor')) === String(s.id_setor) ? 'selected' : '' %>><%= s.nome %><%= s.ativo ? '' : ' (inativo)' %></option><% } }) %>
+        </select>
+        <% if (erros.id_setor) { %><span class="erro-txt"><%= erros.id_setor %></span><% } %></div>
+      <div class="campo"><label for="data_aquisicao">Data de aquisição</label>
+        <input id="data_aquisicao" name="data_aquisicao" type="date" max="<%= new Date().toISOString().slice(0, 10) %>" class="<%= inv('data_aquisicao') %>" value="<%= String(v('data_aquisicao')).slice(0, 10) %>">
+        <% if (erros.data_aquisicao) { %><span class="erro-txt"><%= erros.data_aquisicao %></span><% } %></div>
+      <div class="campo" style="grid-column:1/-1"><label for="situacao">Situação*</label>
+        <% if (novo) { %>
+        <select id="situacao" name="situacao" class="<%= inv('situacao') %>" required>
+          <% SITUACOES.forEach(function (s) { %><option <%= v('situacao') === s ? 'selected' : '' %>><%= s %></option><% }) %>
+        </select>
+        <small>A situação inicial será registrada no histórico do equipamento.</small>
+        <% } else { %>
+        <select id="situacao" disabled><option><%= v('situacao') %></option></select>
+        <small>Para mudar a situação, use “Alterar situação” na ficha do equipamento. Assim a mudança fica registrada no histórico.</small>
+        <% } %>
+        <% if (erros.situacao) { %><span class="erro-txt"><%= erros.situacao %></span><% } %></div>
+    </div>
+  </section>
+  <section class="card">
+    <h2>Informações adicionais</h2>
+    <div class="campo" style="margin-top:20px"><label for="observacoes">Observações</label>
+      <textarea id="observacoes" name="observacoes" maxlength="1000" placeholder="Inclua características técnicas e outras informações relevantes."><%= v('observacoes') %></textarea>
+      <% if (erros.observacoes) { %><span class="erro-txt"><%= erros.observacoes %></span><% } %></div>
+  </section>
+  <p class="obrig-nota">* Campos de preenchimento obrigatório.</p>
+  <div class="form-acoes">
+    <a class="btn btn-sec" href="<%= novo ? '/equipamentos' : '/equipamentos/' + e.id_equipamento %>">Cancelar</a>
+    <button class="btn btn-primario" type="submit"><%- icon('check', 18) %>Salvar</button>
+  </div>
+</form>
+<%- include('partials/foot') %>

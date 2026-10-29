@@ -1,0 +1,65 @@
+<%- include('partials/head') %>
+<div class="cabecalho">
+  <div><h1>Detalhes do equipamento</h1><p>Consulte a ficha completa e o histórico deste equipamento.</p></div>
+  <% if (pode) { %>
+  <div class="acoes-topo">
+    <a class="btn btn-sec" href="/equipamentos/<%= e.id_equipamento %>/editar"><%- icon('pencil', 18) %>Editar</a>
+    <button class="btn btn-primario" type="button" data-abrir="dlg-situacao"><%- icon('refresh', 18) %>Alterar situação</button>
+  </div>
+  <% } %>
+</div>
+<div class="detalhe">
+  <section class="card">
+    <h2>Ficha do equipamento</h2><p class="sub">Identificação e informações patrimoniais</p>
+    <div class="ficha-topo">
+      <span class="ficha-ico"><%- icon('monitor', 24) %></span>
+      <div><strong><%= e.nome %></strong><small><%= e.numero_patrimonio || 'Sem número de patrimônio' %></small></div>
+    </div>
+    <%- badge(e.situacao) %>
+    <dl class="pares">
+      <div><dt>Categoria</dt><dd><%= e.categoria %></dd></div>
+      <div><dt>Marca</dt><dd><%= e.marca || '—' %></dd></div>
+      <div><dt>Modelo</dt><dd><%= e.modelo || '—' %></dd></div>
+      <div><dt>Número de série</dt><dd><%= e.numero_serie || '—' %></dd></div>
+      <div><dt>Setor</dt><dd><%= e.setor %></dd></div>
+      <div><dt>Data de aquisição</dt><dd><%= fmtDate(e.data_aquisicao) || '—' %></dd></div>
+      <div class="larga"><dt>Situação</dt><dd><%= e.situacao %></dd></div>
+      <div class="larga"><dt>Observações</dt><dd><%= e.observacoes || '—' %></dd></div>
+    </dl>
+    <p class="rodape-ficha">Cadastrado por <%= e.cadastrado_por || '—' %> em <%= fmtDate(e.data_cadastro) %>.<br>Última atualização em <%= fmtDate(e.data_atualizacao) %> às <%= String(e.data_atualizacao).slice(11, 16) %>.</p>
+  </section>
+  <section class="card">
+    <h2>Histórico de alterações</h2><p class="sub">Rastreabilidade das mudanças de situação</p>
+    <div class="linha-tempo">
+      <% hist.forEach(function (h) { %>
+      <article>
+        <%= fmtDate(h.data_alteracao) %> • <%= String(h.data_alteracao).slice(11, 16) %><br><%= h.usuario %>
+        <b><%= h.situacao_anterior || 'Cadastro inicial' %> → <%= h.situacao_nova %></b>
+        <p><%= h.justificativa %></p>
+      </article>
+      <% }) %>
+    </div>
+  </section>
+</div>
+
+<% if (pode) { %>
+<dialog id="dlg-situacao" aria-labelledby="s-titulo">
+  <form method="post" action="/equipamentos/<%= e.id_equipamento %>/situacao" class="modal">
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+    <div class="modal-topo">
+      <div><h2 id="s-titulo">Alterar situação</h2><p><%= e.nome %> • <%= e.numero_patrimonio || 'sem patrimônio' %></p></div>
+      <button type="button" class="icone-btn" style="color:var(--suave)" data-fechar aria-label="Fechar"><%- icon('x') %></button>
+    </div>
+    <div class="campo"><span style="font-size:13px;color:var(--suave)">Situação atual</span><div><%- badge(e.situacao) %></div></div>
+    <div class="campo"><label for="nova_situacao">Nova situação*</label>
+      <select id="nova_situacao" name="nova_situacao" required>
+        <% SITUACOES.filter(function (s) { return s !== e.situacao; }).forEach(function (s) { %><option><%= s %></option><% }) %>
+      </select></div>
+    <div class="campo"><label for="justificativa">Justificativa*</label>
+      <textarea id="justificativa" name="justificativa" maxlength="500" minlength="5" required placeholder="Descreva o motivo da alteração"></textarea>
+      <small>Campo obrigatório. A justificativa ficará registrada no histórico.</small></div>
+    <div class="modal-acoes"><button type="button" class="btn btn-sec" data-fechar>Cancelar</button><button type="submit" class="btn btn-primario">Salvar alteração</button></div>
+  </form>
+</dialog>
+<% } %>
+<%- include('partials/foot') %>

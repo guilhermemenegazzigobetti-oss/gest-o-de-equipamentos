@@ -1,0 +1,19 @@
+<% if (user) { %>
+<%- include('partials/head') %>
+<div class="card vazio">
+  <div class="ico-vazio"><%- icon('alertc', 24) %></div>
+  <h3><%= titulo %></h3>
+  <p><%= mensagem %></p>
+  <a class="btn btn-primario" href="/">Voltar ao início</a>
+</div>
+<%- include('partials/foot') %>
+<% } else { %>
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title><%= titulo %> • Gerenciamento de Equipamentos</title><link rel="stylesheet" href="/css/style.css"></head>
+<body><main class="login-pag"><div class="login-card vazio">
+  <div class="ico-vazio"><%- icon('alertc', 24) %></div>
+  <h3><%= titulo %></h3><p><%= mensagem %></p>
+  <a class="btn btn-primario" href="/login">Ir para o login</a>
+</div></main></body></html>
+<% } %>

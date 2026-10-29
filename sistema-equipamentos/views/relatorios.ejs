@@ -1,0 +1,106 @@
+<%- include('partials/head') %>
+<% const expQs = 'aba=' + aba + (qs ? '&' + qs : ''); %>
+<div class="cabecalho">
+  <div><h1>Relatórios</h1><p>Analise o inventário e exporte informações para acompanhamento.</p></div>
+  <div class="acoes-topo">
+    <a class="btn btn-primario" href="/relatorios/exportar.pdf?<%= expQs %>"><%- icon('filepdf', 18) %>Exportar PDF</a>
+    <a class="btn btn-sec" href="/relatorios/exportar.csv?<%= expQs %>"><%- icon('download', 18) %>Exportar CSV</a>
+  </div>
+</div>
+<nav class="abas" aria-label="Tipo de relatório">
+  <a href="/relatorios?aba=equipamentos<%= qs ? '&' + qs : '' %>" class="<%= aba === 'equipamentos' ? 'ativa' : '' %>">Equipamentos</a>
+  <a href="/relatorios?aba=setores<%= qs ? '&' + qs : '' %>" class="<%= aba === 'setores' ? 'ativa' : '' %>">Setores</a>
+</nav>
+
+<form class="card" method="get" action="/relatorios">
+  <input type="hidden" name="aba" value="<%= aba %>">
+  <div class="filtros">
+    <div class="campo"><label for="f-setor">Setor</label>
+      <select id="f-setor" name="setor"><option value="">Todos os setores</option>
+        <% setores.forEach(function (s) { %><option value="<%= s.id_setor %>" <%= String(q.setor) === String(s.id_setor) ? 'selected' : '' %>><%= s.nome %></option><% }) %></select></div>
+    <div class="campo"><label for="f-cat">Categoria</label>
+      <select id="f-cat" name="categoria"><option value="">Todas as categorias</option>
+        <% categorias.forEach(function (c) { %><option value="<%= c.id_categoria %>" <%= String(q.categoria) === String(c.id_categoria) ? 'selected' : '' %>><%= c.nome %></option><% }) %></select></div>
+    <div class="campo"><label for="f-sit">Situação</label>
+      <select id="f-sit" name="situacao"><option value="">Todas as situações</option>
+        <% SITUACOES.forEach(function (s) { %><option <%= q.situacao === s ? 'selected' : '' %>><%= s %></option><% }) %></select></div>
+    <button class="btn btn-primario" type="submit"><%- icon('filter', 18) %>Aplicar filtros</button>
+  </div>
+</form>
+
+<%
+  const sel = [];
+  if (q.setor) { const s = setores.find(function (x) { return String(x.id_setor) === String(q.setor); }); if (s) sel.push(s.nome); }
+  if (q.categoria) { const c = categorias.find(function (x) { return String(x.id_categoria) === String(q.categoria); }); if (c) sel.push(c.nome); }
+  if (SITUACOES.includes(q.situacao)) sel.push(q.situacao);
+%>
+<section class="card">
+  <h2>Resumo dos resultados</h2>
+  <p class="sub"><%= sel.length ? sel.join(', ') : 'Todos os setores, categorias e situações' %> • Base de <%= hoje %></p>
+  <div class="resumo-num">
+    <div><span>Equipamentos</span><strong><%= resumo.total %></strong></div>
+    <div><span>Setores</span><strong><%= resumo.setores %></strong></div>
+    <div><span>Com atenção</span><strong><%= resumo.atencao %></strong></div>
+  </div>
+  <div class="resumo-sit">
+    <% SITUACOES.forEach(function (s) { %><div style="border-color: <%= COR[s] %>"><%= s %><b><%= resumo.mapa[s] || 0 %></b></div><% }) %>
+  </div>
+</section>
+
+<% if (aba === 'equipamentos') { %>
+<div class="tit-lista"><h2>Equipamentos encontrados</h2><span><%= resumo.total %> registros</span></div>
+<% if (!itens.length) { %>
+<div class="card vazio"><div class="ico-vazio"><%- icon('searchx', 24) %></div><h3>Nenhum equipamento encontrado</h3><p>Tente remover algum filtro para ver mais resultados.</p><a class="btn btn-sec" href="/relatorios">Limpar filtros</a></div>
+<% } else { %>
+<div class="tabela-wrap">
+  <table class="resp">
+    <thead><tr><th>Patrimônio</th><th>Nome</th><th>Categoria</th><th>Setor</th><th>Situação</th></tr></thead>
+    <tbody>
+    <% itens.forEach(function (i) { %>
+      <tr><td data-rotulo="Patrimônio"><%= i.numero_patrimonio || '—' %></td><td class="titulo"><%= i.nome %></td><td data-rotulo="Categoria"><%= i.categoria %></td><td data-rotulo="Setor"><%= i.setor %></td><td class="selo"><%- badge(i.situacao) %></td></tr>
+    <% }) %>
+    </tbody>
+  </table>
+</div>
+<p class="nota">Mostrando <%= inicio %>–<%= fim %> de <%= resumo.total %> registros</p>
+<%- include('partials/paginacao', { extraQs: expQs }) %>
+<% } %>
+<p class="nota" style="display:flex;gap:8px;align-items:center"><%- icon('info', 16) %>As exportações incluem os <%= resumo.total %> resultados dos filtros, não apenas os registros desta página. O PDF apresenta o resumo e a listagem completa.</p>
+
+<% } else { %>
+<% if (S.destaque.length) { %>
+<h2 class="sec-tit">Maior volume de manutenção e defeitos</h2>
+<div class="destaques">
+  <% S.destaque.forEach(function (d) { %>
+  <div class="destaque"><span style="display:flex;gap:8px;align-items:center;font-weight:600"><%- icon('alert', 18) %><%= d.nome %></span>
+    <strong><%= d.atencao %> equipamentos</strong><%= d.manut %> em manutenção • <%= d.def %> defeituosos<br><small><%= d.pct %>% do setor</small></div>
+  <% }) %>
+</div>
+<p class="nota" style="margin-top:12px">Os <%= S.destaque.length === 1 ? 'setor destacado concentra' : 'dois setores concentram' %> <%= S.somaDestaque %> dos <%= S.atencaoTotal %> equipamentos com atenção (<%= S.pctDestaque %>%).</p>
+<% } %>
+
+<h2 class="sec-tit">Total de equipamentos por localização</h2>
+<div class="tabela-wrap"><table class="resp">
+  <thead><tr><th>Setor</th><th>Localização</th><th>Total</th><th>Em manutenção</th><th>Defeituosos</th></tr></thead>
+  <tbody>
+  <% S.rows.forEach(function (r) { %><tr><td class="titulo"><%= r.nome %></td><td data-rotulo="Localização"><%= r.localizacao %></td><td data-rotulo="Total"><%= r.total %></td><td data-rotulo="Em manutenção"><%= r.manut %></td><td data-rotulo="Defeituosos"><%= r.def %></td></tr><% }) %>
+  <tr class="total"><td class="titulo">Total geral</td><td data-rotulo="Localização">Todos os blocos</td><td data-rotulo="Total"><%= S.tot.total %></td><td data-rotulo="Em manutenção"><%= S.tot.manut %></td><td data-rotulo="Defeituosos"><%= S.tot.def %></td></tr>
+  </tbody></table></div>
+
+<h2 class="sec-tit">Distribuição por categoria</h2>
+<div class="tabela-wrap"><table class="resp">
+  <thead><tr><th>Setor</th><% S.cats.forEach(function (c) { %><th><%= c %></th><% }) %><th>Total</th></tr></thead>
+  <tbody>
+  <% S.rows.forEach(function (r) { %><tr><td class="titulo"><%= r.nome %></td><% S.cats.forEach(function (c) { %><td data-rotulo="<%= c %>"><%= r.porCat[c] %></td><% }) %><td data-rotulo="Total"><%= r.total %></td></tr><% }) %>
+  <tr class="total"><td class="titulo">Total geral</td><% S.cats.forEach(function (c) { %><td data-rotulo="<%= c %>"><%= S.tot.porCat[c] %></td><% }) %><td data-rotulo="Total"><%= S.tot.total %></td></tr>
+  </tbody></table></div>
+
+<h2 class="sec-tit">Distribuição por situação</h2>
+<div class="tabela-wrap"><table class="resp">
+  <thead><tr><th>Setor</th><% SITUACOES.forEach(function (s) { %><th><%= s %></th><% }) %><th>Total</th></tr></thead>
+  <tbody>
+  <% S.rows.forEach(function (r) { %><tr><td class="titulo"><%= r.nome %></td><% SITUACOES.forEach(function (s) { %><td data-rotulo="<%= s %>"><%= r.porSit[s] %></td><% }) %><td data-rotulo="Total"><%= r.total %></td></tr><% }) %>
+  <tr class="total"><td class="titulo">Total geral</td><% SITUACOES.forEach(function (s) { %><td data-rotulo="<%= s %>"><%= S.tot.porSit[s] %></td><% }) %><td data-rotulo="Total"><%= S.tot.total %></td></tr>
+  </tbody></table></div>
+<% } %>
+<%- include('partials/foot') %>
