@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title><%= titulo ? titulo + ' • ' : '' %>Gerenciamento de Equipamentos</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar" id="menu">
+    <div class="marca">
+      <span class="marca-ico"><%- icon('cap', 22) %></span>
+      <span>Colégio Estadual<b>Mendes Gonçalves</b></span>
+    </div>
+    <nav class="nav" aria-label="Menu principal">
+      <a href="/" class="<%= active === 'dashboard' ? 'ativo' : '' %>"><%- icon('dashboard') %>Dashboard</a>
+      <a href="/equipamentos" class="<%= active === 'equipamentos' ? 'ativo' : '' %>"><%- icon('monitor') %>Equipamentos</a>
+      <a href="/setores" class="<%= active === 'setores' ? 'ativo' : '' %>"><%- icon('building') %>Setores</a>
+      <% if (user.perfil === 'administrador') { %>
+      <a href="/usuarios" class="<%= active === 'usuarios' ? 'ativo' : '' %>"><%- icon('users') %>Usuários</a>
+      <% } %>
+      <a href="/relatorios" class="<%= active === 'relatorios' ? 'ativo' : '' %>"><%- icon('chart') %>Relatórios</a>
+      <form method="post" action="/logout">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <button type="submit"><%- icon('logout') %>Sair</button>
+      </form>
+    </nav>
+  </aside>
+  <div class="principal">
+    <header class="topo">
+      <button class="menu-btn" type="button" aria-label="Abrir menu" aria-controls="menu"><%- icon('menu', 24) %></button>
+      <span class="marca-ico topo-logo"><%- icon('cap', 22) %></span>
+      <div class="desktop-only">Gestão de equipamentos<br>Laboratórios de Informática</div>
+      <div class="usuario"><%= user.nome %><br><%= PERFIS[user.perfil] %></div>
+    </header>
+    <main class="conteudo">
+      <% if (flash) { %>
+      <div class="toast <%= flash.tipo %>" role="<%= flash.tipo === 'erro' ? 'alert' : 'status' %>">
+        <%- icon(flash.tipo === 'ok' ? 'checkc' : 'alertc') %><span><%= flash.msg %></span>
+        <button type="button" data-fechar-toast aria-label="Fechar aviso"><%- icon('x', 18) %></button>
+      </div>
+      <% } %>

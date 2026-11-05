@@ -1,0 +1,75 @@
+<%- include('partials/head') %>
+<div class="cabecalho">
+  <div><h1>Equipamentos</h1><p>Consulte e gerencie o inventário dos laboratórios.</p></div>
+  <% if (pode) { %><a class="btn btn-primario" href="/equipamentos/novo"><%- icon('plus', 18) %>Novo equipamento</a><% } %>
+</div>
+
+<form class="card" method="get" action="/equipamentos">
+  <div class="campo" style="margin-bottom:20px">
+    <label for="q">Buscar equipamento</label>
+    <div class="busca"><%- icon('search', 18) %><input id="q" name="q" type="search" value="<%= busca %>" placeholder="Busque por nome, número de patrimônio ou número de série"></div>
+  </div>
+  <div class="filtros">
+    <div class="campo"><label for="f-setor">Setor</label>
+      <select id="f-setor" name="setor"><option value="">Todos os setores</option>
+        <% setores.forEach(function (s) { %><option value="<%= s.id_setor %>" <%= String(q.setor) === String(s.id_setor) ? 'selected' : '' %>><%= s.nome %></option><% }) %>
+      </select></div>
+    <div class="campo"><label for="f-cat">Categoria</label>
+      <select id="f-cat" name="categoria"><option value="">Todas as categorias</option>
+        <% categorias.forEach(function (c) { %><option value="<%= c.id_categoria %>" <%= String(q.categoria) === String(c.id_categoria) ? 'selected' : '' %>><%= c.nome %></option><% }) %>
+      </select></div>
+    <div class="campo"><label for="f-sit">Situação</label>
+      <select id="f-sit" name="situacao"><option value="">Todas as situações</option>
+        <% SITUACOES.forEach(function (s) { %><option <%= q.situacao === s ? 'selected' : '' %>><%= s %></option><% }) %>
+      </select></div>
+    <button class="btn btn-primario" type="submit"><%- icon('filter', 18) %>Aplicar filtros</button>
+  </div>
+</form>
+
+<div class="tit-lista"><h2>Todos os equipamentos</h2><span><%= total %> registros</span></div>
+<% if (!itens.length) { %>
+<div class="card vazio">
+  <div class="ico-vazio"><%- icon('searchx', 24) %></div>
+  <h3>Nenhum equipamento encontrado</h3>
+  <p>Tente outro termo ou remova os filtros para visualizar os equipamentos cadastrados.</p>
+  <a class="btn btn-sec" href="/equipamentos">Limpar filtros</a>
+</div>
+<% } else { %>
+<div class="tabela-wrap">
+  <table class="resp">
+    <thead><tr><th>Patrimônio</th><th>Nome</th><th>Categoria</th><th>Setor</th><th>Situação</th><th>Ações</th></tr></thead>
+    <tbody>
+    <% itens.forEach(function (e) { %>
+      <tr>
+        <td data-rotulo="Patrimônio"><%= e.numero_patrimonio || '—' %></td>
+        <td class="titulo"><%= e.nome %></td>
+        <td data-rotulo="Categoria"><%= e.categoria %></td>
+        <td data-rotulo="Setor"><%= e.setor %></td>
+        <td class="selo"><%- badge(e.situacao) %></td>
+        <td class="acoes-td">
+          <div class="acoes">
+            <a class="icone-btn" href="/equipamentos/<%= e.id_equipamento %>" aria-label="Ver <%= e.nome %>"><%- icon('eye') %></a>
+            <% if (pode) { %>
+            <a class="icone-btn" href="/equipamentos/<%= e.id_equipamento %>/editar" aria-label="Editar <%= e.nome %>"><%- icon('pencil') %></a>
+            <% if (e.situacao !== 'Inativo') { %>
+            <button type="button" class="icone-btn perigo" data-abrir="dlg-confirmar" aria-label="Desativar <%= e.nome %>"
+              data-confirm-action="/equipamentos/<%= e.id_equipamento %>/desativar" data-confirm-titulo="Deseja desativar este equipamento?"
+              data-confirm-texto="O equipamento ficará inativo. Seu histórico e os dados patrimoniais serão preservados." data-confirm-botao="Desativar equipamento" data-confirm-perigo="1" data-confirm-just="1"><%- icon('power') %></button>
+            <% } else { %>
+            <button type="button" class="icone-btn" data-abrir="dlg-confirmar" aria-label="Reativar <%= e.nome %>"
+              data-confirm-action="/equipamentos/<%= e.id_equipamento %>/reativar" data-confirm-titulo="Deseja reativar este equipamento?"
+              data-confirm-texto="O equipamento voltará para a situação Disponível." data-confirm-botao="Reativar equipamento" data-confirm-perigo="0" data-confirm-just="1"><%- icon('checkc') %></button>
+            <% } %>
+            <% } %>
+          </div>
+        </td>
+      </tr>
+    <% }) %>
+    </tbody>
+  </table>
+</div>
+<p class="nota">Mostrando <%= inicio %>–<%= fim %> de <%= total %> registros</p>
+<%- include('partials/paginacao', { extraQs: qs }) %>
+<% } %>
+<%- include('partials/confirmar', { voltar: 'lista' }) %>
+<%- include('partials/foot') %>

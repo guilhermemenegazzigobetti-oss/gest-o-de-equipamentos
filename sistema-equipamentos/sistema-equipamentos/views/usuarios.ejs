@@ -1,0 +1,78 @@
+<%- include('partials/head') %>
+<div class="cabecalho">
+  <div><h1>Usuários</h1><p>Gerencie os acessos e as permissões de cada usuário.</p></div>
+  <button class="btn btn-primario" type="button" data-abrir="dlg-usuario" data-action="/usuarios" data-titulo="Novo usuário"><%- icon('plus', 18) %>Novo usuário</button>
+</div>
+<div class="aviso"><%- icon('shield') %><span><%= resumo.n %> usuários cadastrados • <%= resumo.ativos %> ativos • <%= resumo.inativos %> inativos. Apenas administradores podem gerenciar os acessos.</span></div>
+
+<form class="card" method="get" action="/usuarios">
+  <div class="filtros">
+    <div class="campo"><label for="q">Buscar usuário</label><input id="q" name="q" type="search" value="<%= q.q || '' %>" placeholder="Nome ou e-mail"></div>
+    <div class="campo"><label for="perfil">Perfil</label>
+      <select id="perfil" name="perfil"><option value="">Todos os perfis</option>
+        <% Object.keys(PERFIS).forEach(function (k) { %><option value="<%= k %>" <%= q.perfil === k ? 'selected' : '' %>><%= PERFIS[k] %></option><% }) %></select></div>
+    <div class="campo"><label for="situacao">Situação</label>
+      <select id="situacao" name="situacao"><option value="">Todas as situações</option>
+        <option value="1" <%= q.situacao === '1' ? 'selected' : '' %>>Ativo</option><option value="0" <%= q.situacao === '0' ? 'selected' : '' %>>Inativo</option></select></div>
+    <button class="btn btn-primario" type="submit"><%- icon('filter', 18) %>Aplicar filtros</button>
+  </div>
+</form>
+
+<% if (!itens.length) { %>
+<div class="card vazio"><div class="ico-vazio"><%- icon('searchx', 24) %></div><h3>Nenhum usuário encontrado</h3><p>Tente outro termo ou remova os filtros.</p><a class="btn btn-sec" href="/usuarios">Limpar filtros</a></div>
+<% } else { %>
+<div class="tabela-wrap">
+  <table class="resp">
+    <thead><tr><th>Nome</th><th>E-mail</th><th>Perfil</th><th>Situação</th><th>Ações</th></tr></thead>
+    <tbody>
+    <% itens.forEach(function (u) { %>
+      <tr>
+        <td class="titulo"><%= u.nome %></td>
+        <td data-rotulo="E-mail"><%= u.email %></td>
+        <td data-rotulo="Perfil"><%= PERFIS[u.perfil] %></td>
+        <td class="selo"><span class="badge <%= u.ativo ? 'b-ok' : 'b-off' %>"><%= u.ativo ? 'Ativo' : 'Inativo' %></span></td>
+        <td class="acoes-td"><div class="acoes">
+          <button type="button" class="icone-btn" data-abrir="dlg-usuario" aria-label="Editar <%= u.nome %>" data-titulo="Editar usuário" data-action="/usuarios/<%= u.id_usuario %>"
+            data-nome="<%= u.nome %>" data-email="<%= u.email %>" data-perfil="<%= u.perfil %>" data-ativo="<%= u.ativo %>"><%- icon('pencil') %></button>
+          <% if (u.id_usuario !== user.id) { %>
+          <% if (u.ativo) { %>
+          <button type="button" class="icone-btn perigo" data-abrir="dlg-confirmar" aria-label="Desativar <%= u.nome %>" data-confirm-action="/usuarios/<%= u.id_usuario %>/alternar"
+            data-confirm-titulo="Deseja desativar este usuário?" data-confirm-texto="O usuário não conseguirá mais entrar no sistema. Os registros dele serão preservados." data-confirm-botao="Desativar usuário" data-confirm-perigo="1"><%- icon('power') %></button>
+          <% } else { %>
+          <button type="button" class="icone-btn" data-abrir="dlg-confirmar" aria-label="Ativar <%= u.nome %>" data-confirm-action="/usuarios/<%= u.id_usuario %>/alternar"
+            data-confirm-titulo="Deseja ativar este usuário?" data-confirm-texto="O usuário poderá entrar no sistema novamente." data-confirm-botao="Ativar usuário" data-confirm-perigo="0"><%- icon('checkc') %></button>
+          <% } %>
+          <% } %>
+        </div></td>
+      </tr>
+    <% }) %>
+    </tbody>
+  </table>
+</div>
+<p class="nota">Mostrando <%= itens.length %> de <%= resumo.n %> usuários.</p>
+<% } %>
+
+<section class="card" style="margin-top:24px">
+  <h2>Perfis de acesso</h2>
+  <p class="sub" style="line-height:1.9;margin-top:16px">Administrador: gerencia equipamentos, setores, usuários e relatórios.<br>Operador: cadastra equipamentos e registra alterações de situação.<br>Consulta: visualiza dados e consulta os relatórios.</p>
+</section>
+
+<dialog id="dlg-usuario" aria-labelledby="u-titulo">
+  <form method="post" action="/usuarios" class="modal" autocomplete="off">
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+    <div class="modal-topo"><div><h2 id="u-titulo" data-titulo>Novo usuário</h2><p>Defina as credenciais e o perfil de acesso ao sistema.</p></div>
+      <button type="button" class="icone-btn" style="color:var(--suave)" data-fechar aria-label="Fechar"><%- icon('x') %></button></div>
+    <div class="campo"><label for="u-nome">Nome*</label><input id="u-nome" name="nome" maxlength="120" required placeholder="Nome completo"></div>
+    <div class="campo"><label for="u-email">E-mail*</label><input id="u-email" name="email" type="email" maxlength="150" required placeholder="nome@cemg.edu.br"></div>
+    <div class="campo"><label for="u-senha">Senha</label>
+      <div class="senha-wrap"><input id="u-senha" name="senha" type="password" minlength="8" maxlength="72" autocomplete="new-password" placeholder="Crie uma senha de acesso"><button type="button" data-toggle-senha aria-label="Mostrar senha"><%- icon('eye') %></button></div>
+      <small>Use pelo menos 8 caracteres. Ao editar, deixe em branco para manter a senha atual.</small></div>
+    <div class="campo"><label for="u-perfil">Perfil*</label>
+      <select id="u-perfil" name="perfil" required><% Object.keys(PERFIS).forEach(function (k) { %><option value="<%= k %>" <%= k === 'operador' ? 'selected' : '' %>><%= PERFIS[k] %></option><% }) %></select></div>
+    <label class="interruptor"><span><b style="font-weight:500">Ativo</b><br><small style="color:var(--suave)">Disponível para uso no sistema.</small></span>
+      <input type="checkbox" name="ativo" value="1" checked><span class="trilho"></span></label>
+    <div class="modal-acoes"><button type="button" class="btn btn-sec" data-fechar>Cancelar</button><button type="submit" class="btn btn-primario">Salvar usuário</button></div>
+  </form>
+</dialog>
+<%- include('partials/confirmar') %>
+<%- include('partials/foot') %>

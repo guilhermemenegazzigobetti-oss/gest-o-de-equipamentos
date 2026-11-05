@@ -1,0 +1,57 @@
+<%- include('partials/head') %>
+<div class="cabecalho">
+  <div><h1>Dashboard</h1><p>Visão geral dos equipamentos e setores do colégio.</p></div>
+  <div class="data-topo"><%- icon('calendar', 18) %><%= hoje %></div>
+</div>
+<div class="aviso"><%- icon('info') %><span>Inventário atualizado às <%= atualizado %>. Há <%= atencao %> equipamentos em manutenção ou com defeito que precisam de acompanhamento.</span></div>
+
+<section class="indicadores" aria-label="Indicadores">
+  <div class="indicador"><span>Total de equipamentos</span><strong><%= total %></strong></div>
+  <div class="indicador"><span>Total de setores</span><strong><%= setores %></strong></div>
+  <div class="indicador"><span>Disponíveis</span><strong><%= mapa['Disponível'] || 0 %></strong></div>
+  <div class="indicador"><span>Em manutenção</span><strong><%= mapa['Em manutenção'] || 0 %></strong></div>
+  <div class="indicador"><span>Defeituosos</span><strong><%= mapa['Defeituoso'] || 0 %></strong></div>
+</section>
+
+<div class="duas-col">
+  <section class="card">
+    <h2>Equipamentos por situação</h2>
+    <p class="sub">Distribuição dos <%= total %> equipamentos</p>
+    <div class="rosca-wrap">
+      <div class="rosca" style="background: <%- donut %>" role="img" aria-label="Gráfico de rosca com a distribuição por situação">
+        <div><span><strong><%= total %></strong><br><small>equipamentos</small></span></div>
+      </div>
+      <ul class="legenda">
+        <% situacoes.forEach(function (s) { %><li style="border-color: <%= s.cor %>"><%= s.nome %>: <%= s.n %></li><% }) %>
+      </ul>
+    </div>
+  </section>
+  <section class="card">
+    <h2>Equipamentos por setor</h2>
+    <p class="sub">Quantidade total por localização</p>
+    <% porSetor.forEach(function (s) { %>
+    <div class="barra-item"><%= s.nome %> · <%= s.n %>
+      <div class="barra"><i style="width: <%= Math.round(s.n / maxSetor * 100) %>%"></i></div>
+    </div>
+    <% }) %>
+  </section>
+</div>
+
+<div class="tit-lista"><h2>Últimas alterações de situação</h2><span><%= ultimas.length %> registros recentes</span></div>
+<div class="tabela-wrap">
+  <table class="resp">
+    <thead><tr><th>Equipamento</th><th>Situação anterior → nova</th><th>Usuário</th><th>Data</th></tr></thead>
+    <tbody>
+    <% ultimas.forEach(function (u) { %>
+      <tr>
+        <td class="titulo"><a href="/equipamentos/<%= u.id_equipamento %>" style="color:inherit"><%= u.equipamento %></a><br><span class="patr"><%= u.numero_patrimonio %></span></td>
+        <td class="selo sem-rotulo"><span class="sit-seta"><%= u.situacao_anterior %> →</span> <%- badge(u.situacao_nova) %></td>
+        <td data-rotulo="Usuário"><%= u.usuario %></td>
+        <td data-rotulo="Data"><%= fmtDate(u.data_alteracao) %> • <%= String(u.data_alteracao).slice(11, 16) %></td>
+      </tr>
+    <% }) %>
+    <% if (!ultimas.length) { %><tr><td colspan="4" class="sem-rotulo">Nenhuma alteração registrada ainda.</td></tr><% } %>
+    </tbody>
+  </table>
+</div>
+<%- include('partials/foot') %>

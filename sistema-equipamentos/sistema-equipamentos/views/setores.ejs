@@ -1,0 +1,72 @@
+<%- include('partials/head') %>
+<div class="cabecalho">
+  <div><h1>Setores</h1><p>Organize as localizações e os responsáveis pelos equipamentos.</p></div>
+  <% if (pode) { %><button class="btn btn-primario" type="button" data-abrir="dlg-setor" data-action="/setores" data-titulo="Novo setor"><%- icon('plus', 18) %>Novo setor</button><% } %>
+</div>
+<div class="aviso"><%- icon('building', 24) %><div><b><%= resumo.n %> setores cadastrados</b><small><%= resumo.ativos %> ativos • <%= resumo.inativos %> inativos • <%= resumo.equip %> equipamentos vinculados</small></div></div>
+
+<form class="card" method="get" action="/setores">
+  <div class="filtros">
+    <div class="campo" style="flex:3 1 260px"><label for="q">Buscar setor</label><input id="q" name="q" type="search" value="<%= q.q || '' %>" placeholder="Nome, localização ou responsável"></div>
+    <div class="campo"><label for="situacao">Situação</label>
+      <select id="situacao" name="situacao"><option value="">Todas as situações</option>
+        <option value="1" <%= q.situacao === '1' ? 'selected' : '' %>>Ativo</option><option value="0" <%= q.situacao === '0' ? 'selected' : '' %>>Inativo</option></select></div>
+    <button class="btn btn-primario" type="submit"><%- icon('filter', 18) %>Aplicar filtros</button>
+  </div>
+</form>
+
+<% if (!itens.length) { %>
+<div class="card vazio"><div class="ico-vazio"><%- icon('searchx', 24) %></div><h3>Nenhum setor encontrado</h3><p>Tente outro termo ou remova os filtros.</p><a class="btn btn-sec" href="/setores">Limpar filtros</a></div>
+<% } else { %>
+<div class="tabela-wrap">
+  <table class="resp">
+    <thead><tr><th>Nome</th><th>Localização</th><th>Responsável</th><th>Qtde de equipamentos</th><th>Situação</th><% if (pode) { %><th>Ações</th><% } %></tr></thead>
+    <tbody>
+    <% itens.forEach(function (s) { %>
+      <tr>
+        <td class="titulo"><%= s.nome %></td>
+        <td data-rotulo="Localização"><strong style="font-weight:500"><%= s.localizacao %></strong></td>
+        <td data-rotulo="Responsável"><%= s.responsavel || '—' %></td>
+        <td data-rotulo="Qtde de equipamentos"><%= s.qtde %></td>
+        <td class="selo"><span class="badge <%= s.ativo ? 'b-ok' : 'b-off' %>"><%= s.ativo ? 'Ativo' : 'Inativo' %></span></td>
+        <% if (pode) { %>
+        <td class="acoes-td"><div class="acoes">
+          <button type="button" class="icone-btn" data-abrir="dlg-setor" aria-label="Editar <%= s.nome %>" data-titulo="Editar setor" data-action="/setores/<%= s.id_setor %>"
+            data-nome="<%= s.nome %>" data-descricao="<%= s.descricao || '' %>" data-localizacao="<%= s.localizacao %>" data-responsavel="<%= s.responsavel || '' %>" data-ativo="<%= s.ativo %>"><%- icon('pencil') %></button>
+          <% if (s.ativo) { %>
+          <button type="button" class="icone-btn perigo" data-abrir="dlg-confirmar" aria-label="Desativar <%= s.nome %>" data-confirm-action="/setores/<%= s.id_setor %>/alternar"
+            data-confirm-titulo="Deseja desativar este setor?" data-confirm-texto="A desativação preserva os vínculos e o histórico dos equipamentos." data-confirm-botao="Desativar setor" data-confirm-perigo="1"><%- icon('power') %></button>
+          <% } else { %>
+          <button type="button" class="icone-btn" data-abrir="dlg-confirmar" aria-label="Reativar <%= s.nome %>" data-confirm-action="/setores/<%= s.id_setor %>/alternar"
+            data-confirm-titulo="Deseja reativar este setor?" data-confirm-texto="O setor voltará a aceitar novos equipamentos." data-confirm-botao="Reativar setor" data-confirm-perigo="0"><%- icon('checkc') %></button>
+          <% } %>
+        </div></td>
+        <% } %>
+      </tr>
+    <% }) %>
+    </tbody>
+  </table>
+</div>
+<p class="nota">Mostrando <%= itens.length %> de <%= resumo.n %> setores. A desativação preserva os vínculos e o histórico dos equipamentos.</p>
+<% } %>
+
+<% if (pode) { %>
+<dialog id="dlg-setor" aria-labelledby="st-titulo">
+  <form method="post" action="/setores" class="modal">
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+    <div class="modal-topo"><div><h2 id="st-titulo" data-titulo>Novo setor</h2><p>Cadastre uma localização para organizar os equipamentos.</p></div>
+      <button type="button" class="icone-btn" style="color:var(--suave)" data-fechar aria-label="Fechar"><%- icon('x') %></button></div>
+    <div class="campo"><label for="st-nome">Nome*</label><input id="st-nome" name="nome" maxlength="120" required placeholder="Nome do setor"></div>
+    <div class="campo"><label for="st-desc">Descrição</label><textarea id="st-desc" name="descricao" maxlength="255" placeholder="Descreva a finalidade do setor"></textarea></div>
+    <div class="campo"><label for="st-loc">Localização física*</label><input id="st-loc" name="localizacao" maxlength="120" required placeholder="Ex.: Bloco A • Sala 03"></div>
+    <div class="campo"><label for="st-resp">Responsável</label>
+      <select id="st-resp" name="responsavel"><option value="">Selecione um responsável</option>
+        <% responsaveis.forEach(function (r) { %><option><%= r.nome %></option><% }) %></select></div>
+    <label class="interruptor"><span><b style="font-weight:500">Ativo</b><br><small style="color:var(--suave)">Disponível para uso no sistema.</small></span>
+      <input type="checkbox" name="ativo" value="1" checked><span class="trilho"></span></label>
+    <div class="modal-acoes"><button type="button" class="btn btn-sec" data-fechar>Cancelar</button><button type="submit" class="btn btn-primario">Salvar setor</button></div>
+  </form>
+</dialog>
+<%- include('partials/confirmar') %>
+<% } %>
+<%- include('partials/foot') %>

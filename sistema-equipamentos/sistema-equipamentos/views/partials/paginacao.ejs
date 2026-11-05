@@ -1,0 +1,12 @@
+<% const base = (n) => '?' + (extraQs ? extraQs + '&' : '') + 'pagina=' + n; %>
+<% if (totalPag > 1) { %>
+<nav class="paginacao" aria-label="Paginação">
+  <% if (pag > 1) { %><a class="forte" href="<%= base(pag - 1) %>">Anterior</a><% } else { %><span class="forte desab">Anterior</span><% } %>
+  <% paginas.forEach(function (n) { %>
+    <% if (n === '…') { %><span>…</span>
+    <% } else if (n === pag) { %><span class="atual" aria-current="page"><%= n %></span>
+    <% } else { %><a href="<%= base(n) %>"><%= n %></a><% } %>
+  <% }) %>
+  <% if (pag < totalPag) { %><a class="forte" href="<%= base(pag + 1) %>">Próxima</a><% } else { %><span class="forte desab">Próxima</span><% } %>
+</nav>
+<% } %>

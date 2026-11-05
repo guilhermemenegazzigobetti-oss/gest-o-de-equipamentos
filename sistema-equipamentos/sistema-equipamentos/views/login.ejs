@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Entrar • Gerenciamento de Equipamentos</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<main class="login-pag">
+  <section class="login-card">
+    <div class="marca">
+      <span class="marca-ico"><%- icon('cap', 22) %></span>
+      <span>Colégio Estadual<b>Mendes Gonçalves</b></span>
+    </div>
+    <p class="eyebrow">Laboratórios de Informática</p>
+    <h1>Sistema de Gerenciamento de Equipamentos</h1>
+    <p class="sub">Acesse sua conta para acompanhar e gerenciar os equipamentos do colégio.</p>
+    <form method="post" action="/login" novalidate>
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <% if (erro) { %>
+      <div class="toast erro" role="alert"><%- icon('alertc') %><span><%= erro %></span></div>
+      <% } %>
+      <div class="campo">
+        <label for="login">Usuário ou e-mail</label>
+        <input id="login" name="login" type="text" autocomplete="username" placeholder="Digite seu usuário ou e-mail" value="<%= valor %>" class="<%= erro ? 'invalido' : '' %>" required autofocus>
+      </div>
+      <div class="campo">
+        <label for="senha">Senha</label>
+        <div class="senha-wrap">
+          <input id="senha" name="senha" type="password" autocomplete="current-password" placeholder="Digite sua senha" class="<%= erro ? 'invalido' : '' %>" required>
+          <button type="button" data-toggle-senha aria-label="Mostrar senha"><%- icon('eye') %></button>
+        </div>
+        <small>Use o ícone para mostrar ou ocultar a senha.</small>
+      </div>
+      <button type="submit" class="btn btn-primario btn-bloco"><%- icon('login', 18) %>Entrar</button>
+    </form>
+    <p class="login-aviso"><%- icon('shield', 18) %><span>Acesso restrito a usuários autorizados. Precisa de ajuda? Procure a administração.</span></p>
+  </section>
+  <p class="login-rodape">Colégio Estadual Mendes Gonçalves<small>Controle, organização e cuidado com o patrimônio.</small></p>
+</main>
+<script src="/js/app.js"></script>
+</body>
+</html>
