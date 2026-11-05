@@ -2,11 +2,11 @@
 USE equipamentos_db;
 SET NAMES utf8mb4;
 
--- Senhas de demonstração: Admin@123 (administrador), Operador@123 (operador), Consulta@123 (consulta)
+-- Usuários fictícios desativados: crie a conta administrativa inicial com `npm run create-admin`.
 INSERT INTO usuarios (id_usuario, nome, email, senha_hash, perfil, ativo, data_cadastro) VALUES
-(1, 'Ana Paula Silva', 'ana.silva@cemg.edu.br', '$2b$12$KRC2TUC7z82RiQARqFylpujF2BUtNiLjFrKcJCDA7Vyrr2xaNYSSC', 'administrador', 1, '2024-02-01 08:00:00'),
-(2, 'Carlos Oliveira', 'carlos.oliveira@cemg.edu.br', '$2b$12$52G3/vqvqPYYOwZIIY1ddubPRde21G4wJvuBaXovKcSnBBP4GTziW', 'operador', 1, '2024-02-01 08:00:00'),
-(3, 'Fernanda Lima', 'fernanda.lima@cemg.edu.br', '$2b$12$ajrGPojgYN/tDhEZpSvn/eEzACBM/HbkmcOxWD1wXh2hplvxjUzy2', 'consulta', 0, '2024-02-01 08:00:00');
+(1, 'Ana Paula Silva', 'ana.silva@cemg.edu.br', '$2b$12$RckWZkz2yRWfBuJ0J/8kH.F4CIwMfl7JfyA/SSk8YOHnxUeBS6Cy2', 'administrador', 0, '2024-02-01 08:00:00'),
+(2, 'Carlos Oliveira', 'carlos.oliveira@cemg.edu.br', '$2b$12$9aw/Zz8ZX.TjdsUh4nb8teWSOEE/CCcIHVZBRguswKDEH80aGKl.W', 'operador', 0, '2024-02-01 08:00:00'),
+(3, 'Fernanda Lima', 'fernanda.lima@cemg.edu.br', '$2b$12$bacW8uMbgI6.Vzqo1xxoN.X89J5/gVeI730Be/eCr33.zmzoo/Kzy', 'consulta', 0, '2024-02-01 08:00:00');
 
 INSERT INTO setores (id_setor, nome, descricao, localizacao, responsavel, ativo) VALUES
 (1, 'Laboratório de Informática 01', 'Aulas práticas de informática', 'Bloco A • Sala 01', 'Carlos Oliveira', 1),
