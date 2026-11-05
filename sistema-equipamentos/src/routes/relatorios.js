@@ -2,10 +2,26 @@ const express = require('express');
 const PDFDocument = require('pdfkit');
 const db = require('../db');
 const H = require('../lib/helpers');
-const { gerarXlsx } = require('../lib/excel');
 const { filtros } = require('./equipamentos');
 const router = express.Router();
 const POR_PAGINA = 10;
+const LIMITE_EXPORTACAO = 10000;
+const exportacoes = new Map();
+function limitarExportacao(req, res, next) {
+  const agora = Date.now();
+  const chave = req.ip || 'desconhecido';
+  let registro = exportacoes.get(chave);
+  if (!registro || agora - registro.inicio >= 10 * 60 * 1000) registro = { inicio: agora, total: 0 };
+  registro.total += 1;
+  exportacoes.set(chave, registro);
+  if (exportacoes.size > 5000) {
+    for (const [ip, item] of exportacoes) if (agora - item.inicio >= 10 * 60 * 1000) exportacoes.delete(ip);
+    while (exportacoes.size > 5000) exportacoes.delete(exportacoes.keys().next().value);
+  }
+  if (registro.total > 10) return res.status(429).render('erro', { titulo: 'Muitas exportações', mensagem: 'Aguarde alguns minutos antes de gerar novos relatórios.', active: '' });
+  return next();
+}
+
 
 // RN09: todos os relatórios respeitam os filtros escolhidos (setor, categoria, situação)
 function filtrosRel(q) { return filtros({ setor: q.setor, categoria: q.categoria, situacao: q.situacao }); }
@@ -83,11 +99,16 @@ async function tabelaExport(q) {
     };
   }
   const f = filtrosRel(q);
-  const [itens] = await db.query(`${SQL_ITENS} ${f.where} ORDER BY e.numero_patrimonio`, f.params);
+  const [itens] = await db.query(`${SQL_ITENS} ${f.where} ORDER BY e.numero_patrimonio LIMIT ?`, [...f.params, LIMITE_EXPORTACAO + 1]);
+  if (itens.length > LIMITE_EXPORTACAO) {
+    const erro = new Error('Limite de exportação excedido. Refine os filtros para exportar até 10.000 registros por vez.');
+    erro.status = 413;
+    throw erro;
+  }
   return { titulo: 'Relatório de equipamentos', nome: 'relatorio-equipamentos', cab: ['Patrimônio', 'Nome', 'Categoria', 'Setor', 'Situação'], linhas: itens.map((i) => [i.numero_patrimonio || '', i.nome, i.categoria, i.setor, i.situacao]) };
 }
 
-router.get('/exportar.csv', async (req, res, next) => {
+router.get('/exportar.csv', limitarExportacao, async (req, res, next) => {
   try {
     const t = await tabelaExport(req.query);
     res.setHeader('Content-Type', 'text/csv; charset=utf-8');
@@ -96,18 +117,7 @@ router.get('/exportar.csv', async (req, res, next) => {
   } catch (e) { next(e); }
 });
 
-router.get('/exportar.xlsx', async (req, res, next) => {
-  try {
-    const t = await tabelaExport(req.query);
-    const r = await resumoEquip(filtrosRel(req.query));
-    const buf = await gerarXlsx(t, r, req.session.user.nome);
-    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-    res.setHeader('Content-Disposition', `attachment; filename="${t.nome}.xlsx"`);
-    res.send(buf);
-  } catch (e) { next(e); }
-});
-
-router.get('/exportar.pdf', async (req, res, next) => {
+router.get('/exportar.pdf', limitarExportacao, async (req, res, next) => {
   try {
     const t = await tabelaExport(req.query);
     const f = filtrosRel(req.query);
