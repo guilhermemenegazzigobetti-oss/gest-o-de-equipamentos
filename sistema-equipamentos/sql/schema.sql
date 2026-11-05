@@ -10,6 +10,8 @@ USE equipamentos_db;
 
 SET FOREIGN_KEY_CHECKS = 0;
 DROP TABLE IF EXISTS historico_equipamentos;
+DROP TABLE IF EXISTS sessoes;
+DROP TABLE IF EXISTS tentativas_login;
 DROP TABLE IF EXISTS equipamentos;
 DROP TABLE IF EXISTS categorias;
 DROP TABLE IF EXISTS setores;
@@ -87,3 +89,24 @@ CREATE TABLE historico_equipamentos (
   CONSTRAINT fk_hist_equip   FOREIGN KEY (id_equipamento) REFERENCES equipamentos (id_equipamento),
   CONSTRAINT fk_hist_usuario FOREIGN KEY (id_usuario)     REFERENCES usuarios (id_usuario)
 ) ENGINE=InnoDB;
+
+
+-- Sessões e limitação persistente de tentativas de autenticação.
+CREATE TABLE sessoes (
+  id_sessao VARCHAR(128) NOT NULL,
+  expira_em BIGINT UNSIGNED NOT NULL,
+  dados MEDIUMTEXT NOT NULL,
+  PRIMARY KEY (id_sessao),
+  KEY idx_sessoes_expira (expira_em)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE tentativas_login (
+  ip_hash CHAR(64) NOT NULL,
+  login_hash CHAR(64) NOT NULL,
+  tentativas SMALLINT UNSIGNED NOT NULL DEFAULT 0,
+  inicio_janela DATETIME NOT NULL,
+  bloqueado_ate DATETIME NULL,
+  PRIMARY KEY (ip_hash, login_hash),
+  KEY idx_tentativas_inicio (inicio_janela),
+  KEY idx_tentativas_bloqueio (bloqueado_ate)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
