@@ -28,7 +28,7 @@ async function validar(b, id) {
   else if (!H.isEmail(d.email) || d.email.length > 150) erro = 'Informe um e-mail válido.';
   else if (!H.PERFIS[d.perfil]) erro = 'Selecione o perfil de acesso.';
   else if ((!id || d.senha) && d.senha.length < 8) erro = 'A senha deve ter pelo menos 8 caracteres.';
-  else if (d.senha.length > 72) erro = 'A senha pode ter até 72 caracteres.';
+  else if (Buffer.byteLength(d.senha, 'utf8') > 72) erro = 'A senha pode ter até 72 bytes em UTF-8.';
   else {
     const [dup] = await db.query('SELECT 1 FROM usuarios WHERE email = ? AND id_usuario <> ?', [d.email, id || 0]);
     if (dup.length) erro = 'Já existe um usuário com esse e-mail.';
