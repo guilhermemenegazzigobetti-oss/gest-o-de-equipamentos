@@ -2,6 +2,7 @@ const express = require('express');
 const PDFDocument = require('pdfkit');
 const db = require('../db');
 const H = require('../lib/helpers');
+const { gerarXlsx } = require('../lib/excel');
 const { filtros } = require('./equipamentos');
 const router = express.Router();
 const POR_PAGINA = 10;
@@ -92,6 +93,17 @@ router.get('/exportar.csv', async (req, res, next) => {
     res.setHeader('Content-Type', 'text/csv; charset=utf-8');
     res.setHeader('Content-Disposition', `attachment; filename="${t.nome}.csv"`);
     res.send(csv([t.cab, ...t.linhas]));
+  } catch (e) { next(e); }
+});
+
+router.get('/exportar.xlsx', async (req, res, next) => {
+  try {
+    const t = await tabelaExport(req.query);
+    const r = await resumoEquip(filtrosRel(req.query));
+    const buf = await gerarXlsx(t, r, req.session.user.nome);
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename="${t.nome}.xlsx"`);
+    res.send(buf);
   } catch (e) { next(e); }
 });
 
