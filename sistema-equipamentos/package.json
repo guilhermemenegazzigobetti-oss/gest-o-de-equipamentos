@@ -5,7 +5,8 @@
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",
-    "dev": "node --watch src/server.js"
+    "dev": "node --watch src/server.js",
+    "create-admin": "node scripts/create-admin.js"
   },
   "license": "UNLICENSED",
   "private": true,
@@ -13,7 +14,6 @@
     "bcryptjs": "^3.0.3",
     "dotenv": "^18.0.8",
     "ejs": "^7.0.2",
-    "exceljs": "^4.4.0",
     "express": "^5.3.0",
     "express-session": "^1.19.0",
     "helmet": "^8.3.0",
