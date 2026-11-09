@@ -116,7 +116,31 @@ router.get('/exportar.csv', limitarExportacao, async (req, res, next) => {
     res.send(csv([t.cab, ...t.linhas]));
   } catch (e) { next(e); }
 });
-
+router.get('/exportar.xlsx', limitarExportacao, async (req, res, next) => {
+  try {
+    const ExcelJS = require('exceljs');
+    const t = await tabelaExport(req.query);
+    const wb = new ExcelJS.Workbook();
+    wb.creator = 'Gestão de equipamentos';
+    wb.created = new Date();
+    const ws = wb.addWorksheet(t.titulo.slice(0, 31));
+    ws.addRow(t.cab);
+    t.linhas.forEach((l) => ws.addRow(l));
+    const cab = ws.getRow(1);
+    cab.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+    cab.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1E4FA3' } };
+    ws.views = [{ state: 'frozen', ySplit: 1 }];
+    ws.columns.forEach((col) => {
+      let max = 10;
+      col.eachCell({ includeEmpty: false }, (c) => { max = Math.max(max, String(c.value ?? '').length + 2); });
+      col.width = Math.min(max, 50);
+    });
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename="${t.nome}.xlsx"`);
+    await wb.xlsx.write(res);
+    res.end();
+  } catch (e) { next(e); }
+});
 router.get('/exportar.pdf', limitarExportacao, async (req, res, next) => {
   try {
     const t = await tabelaExport(req.query);
