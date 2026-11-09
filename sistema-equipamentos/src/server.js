@@ -76,7 +76,7 @@ app.use((req, res, next) => {
 });
 app.use(csrf);
 
-app.use(require('./routes/auth-routes'));
+app.use(require('./routes/auth'));
 app.use(requireAuth);
 app.use('/', require('./routes/dashboard'));
 app.use('/equipamentos', require('./routes/equipamentos'));
